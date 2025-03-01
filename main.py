@@ -1,6 +1,7 @@
 import copy
 
 hiTypes = ["bamboo", "circle", "kanji", "chu", "hatu", "card", "flower"]
+dragons = ["chu", "hatu", "card", "flower"]
 
 
 class Hi:
@@ -31,7 +32,7 @@ class Solitaire:
     
 
     def printField(self):
-        print(','.join([self.printHi(x) for x in self.left3]), self.printHi(self.center), ','.join([self.printHi(x) for x in self.right3]))
+        print(','.join([self.printHi(x) for x in self.left3]), self.printHi(self.center), '  ', ','.join([self.printHi(x) for x in self.right3]))
         # print([[self.printHi(x) for x in a] for a in self.backhi])
         maxY = max([len(x) for x in self.backhi])
         for y in range(maxY):
@@ -63,7 +64,7 @@ class Solitaire:
             return "FF"
 
 
-    def control(self, pickHiX=None, pickLeft=None, pickRight=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None): # backhi(手元手札)の左からX列目の一番手前の牌(操作できる牌)を移動先の列targetXまたはleft3 (top-left), right3 (top-right)に移動させる。移動できない場合は-1を返す
+    def control(self, pickHiX=None, pickLeft=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None): # backhi(手元手札)の左からX列目の一番手前の牌(操作できる牌)を移動先の列targetXまたはleft3 (top-left), right3 (top-right)に移動させる。移動できない場合は-1を返す
         # targetX = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
         # targetCenter = True | False
         # targetLeft = 0 | 1 | 2
@@ -78,7 +79,7 @@ class Solitaire:
         ####################
 
         # pickはどれか一つしか指定できない
-        if pickHiX is not None and pickLeft is not None and pickRight is not None:
+        if pickHiX is not None and pickLeft is not None:
             print("pick control should be only 1")
             return -1
         
@@ -113,15 +114,6 @@ class Solitaire:
             afterLeft3[pickLeft] = None
 
 
-        elif pickRight is not None:
-            if pickRight > 2:
-                print("pickRight should be below 3")
-                return -1
-            
-            pickHi = self.right3[pickLeft]
-
-            afterRight3[pickRight] = None
-
         ######################
         # 牌配置先validation #
         ######################
@@ -151,15 +143,19 @@ class Solitaire:
                 return 0
 
             # stackableか判定する
-            targetHeadHi = self.backhi[targetX][0]
-            if pickHi.hiType == targetHeadHi.hiType: # もし牌の記号が同じならnot stackable
-                return -1
+            if self.backhi[targetX] != []: # もし積み上げ先の牌が空でないなら判定処理を行う
+                targetHeadHi = self.backhi[targetX][0]
+                if pickHi.hiType in dragons: # もし牌が中、發、カード、または花だった場合はnot stackable
+                    return -1
 
-            if pickHi.num == targetHeadHi.num: # もし牌の数字が同じならnot stackable
-                return -1
+                if pickHi.hiType == targetHeadHi.hiType: # もし牌の記号が同じならnot stackable
+                    return -1
 
-            if pickHi.num > targetHeadHi.num: # もし積み上げ先の牌よりも今pickしてる牌の数字が大きかったら積み上げられない
-                return -1
+                if pickHi.num == targetHeadHi.num: # もし牌の数字が同じならnot stackable
+                    return -1
+
+                if pickHi.num > targetHeadHi.num: # もし積み上げ先の牌よりも今pickしてる牌の数字が大きかったら積み上げられない
+                    return -1
 
             # それ以外なら積み上げられる
             self.backhi[targetX] = appendToHead(self.backhi[targetX], pickHi)
@@ -167,10 +163,9 @@ class Solitaire:
                 self.backhi[pickHiX] = afterPickedHiXArray
             elif pickLeft is not None:
                 self.left3 = afterLeft3
-            elif pickRight is not None:
-                self.right3 = afterRight3
 
             return 0
+            
         elif targetCenter: # 中央に花の牌の配置を試みる
             if pickHi.hiType == "flower":
                 self.backhi[pickHiX] = afterPickedHiXArray
@@ -185,21 +180,30 @@ class Solitaire:
                 print("targetLeft should below 3")
                 return -1
 
-            self.left3[targetLeft] = pickHi
+            if self.left3[targetLeft] is None:
+                self.left3[targetLeft] = pickHi
+            else:
+                print("targetLeft not empty")
+                return -1
 
             if pickHiX is not None:
                 self.backhi[pickHiX] = afterPickedHiXArray
-            elif pickRight is not None:
-                self.right3 = afterRight3
             
             return 0
         elif targetRight is not None:
-            print("right control")
             if targetRight > 2:
                 print("targetRight should below 3")
                 return -1
 
-            self.right3[targetRight] = pickHi
+            # 右側に牌を配置するときは1から同じ種類の牌がインクリメントされなければいけない
+
+            if self.right3[targetRight] is None and pickHi.num == 1:
+                self.right3[targetRight] = pickHi
+
+            elif self.right3[targetRight].hiType == pickHi.hiType and self.right3[targetRight].num == pickHi.num - 1:
+                self.right3[targetRight] = pickHi
+            else:
+                return -1
 
             
             if pickHiX is not None:
@@ -207,6 +211,55 @@ class Solitaire:
             elif pickLeft is not None:
                 self.left3 = afterLeft3
             return 0
+
+    def clearDragon(self):
+        # left3または各列の一番手前に同じ三元牌が４つある場合はそれらを消す
+        count = [0, 0, 0] # chu hatu card
+
+        # left3にあるかの判定
+
+
+        for i in self.left3:
+            if i is not None:
+                if i.hiType == "chu":
+                    count[0] += 1
+                elif i.hiType == "hatu":
+                    count[1] += 1
+                elif i.hiType == "card":
+                    count[2] += 1
+
+        for x in range(8):
+            if len(self.backhi[x]) > 0:
+                head = self.backhi[x][0].hiType
+                if head == "chu":
+                    count[0] += 1
+                elif head == "hatu":
+                    count[1] += 1
+                elif head == "card":
+                    count[2] += 1
+
+        # left3の一つを埋める (空いてなければ消去不可)
+
+        
+        removableDragon = None
+        if count[0] == 4:
+            removableDragon = "chu"
+        elif count[1] == 4:
+            removableDragon = "hatu"
+        elif count[2] == 4:
+            removableDragon = "card"
+
+        # 4つそろってる三元牌を消す
+        for i, elem in enumerate(self.left3):
+            if elem is not None:
+                if elem.hiType == removableDragon:
+                    self.left3[i] = None
+
+        for x in range(8):
+            if len(self.backhi[x]) > 0:
+                head = self.backhi[x][0].hiType
+                if head == removableDragon:
+                    self.backhi[x][0] = None
 
 
 
@@ -250,6 +303,10 @@ def convertToHiClass(hiInput):
 def solver(solitaire):
     pass
 
+def control(game, pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight):
+    if game.control(pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight) != 0:
+        print("fail")
+    
 
 def main():
     backhiRaw = [["C5", "DD", "DD", "B4", "K8"],
@@ -264,31 +321,38 @@ def main():
     backHiConverted = [[convertToHiClass(x) for x in a] for a in backhiRaw]
 
     game = Solitaire(backHiConverted)
-    # control(pickHiX=None, pickLeft=None, pickRight=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None)
-    if game.control(6, None, None, None, True) != 0:
-        print("fail")
+    # control(game,     pickHiX=None, pickLeft=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None)
+    game.printField()
+    control(game, 6,    None, None, True, None, None)
+    game.printField()
 
-    # fail
-    # if game.control(4, 6) != 0:
-    #     print("fail")
-    # else:
-    #     print("success")
-
-    if game.control(2, None, None, None, None, 0) != 0:
-        print("fail")
-
-    if game.control(None, 0, None, 6, None, None) != 0:
-        print("fail")
-
-    if game.control(4, None, None, None, None, 0) != 0:
-        print("fail")
-
-    if game.control(4, None, None, 2, None, None) != 0:
-        print("fail")
-
-    if game.control(0, None, None, 2, None, None) != 0:
-        print("fail")
-
+    control(game, 2,    None, None, None, 0   , None)
+    game.printField()
+    control(game, None, 0,    6,    None, None, None)
+    game.printField()
+    control(game, 4,    None, None, None, 0   , None)
+    game.printField()
+    control(game, 4,    None, 2,    None, None, None)
+    game.printField()
+    control(game, 0,    None, 2,    None, None, None)
+    game.printField()
+    control(game, 4,    None, None, None, 1, None)
+    game.printField()
+    control(game, 4,    None, None, None, None, 0)
+    game.printField()
+    control(game, 4,    None, None, None, None, 0)
+    game.printField()
+    control(game, 7,    None, None, None, 2, None)
+    game.printField()
+    control(game, 6,    None, 7,    None, None, None)
+    game.printField()
+    control(game, 6,    None, None, None, None, 0)
+    game.printField()
+    control(game, None, 0,    4,    None, None, None)
+    game.printField()
+    control(game, 6,    None, 4,    None, None, None)
+    game.printField()
+    game.clearDragon()
     game.printField()
 
 
