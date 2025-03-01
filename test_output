@@ -1,0 +1,106 @@
+  ,  ,           ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD B6 B7 C3 K3 
+C5 DH B2 DC B3 DC FF DH 
+  ,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD B6 B7 C3 K3 
+C5 DH B2 DC B3 DC    DH 
+B2,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD B6 B7 C3 K3 
+C5 DH    DC B3 DC    DH 
+  ,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD B6 B7 C3 K3 
+C5 DH    DC B3 DC B2 DH 
+B3,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD B6 B7 C3 K3 
+C5 DH    DC    DC B2 DH 
+B3,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+C5 DH B6 DC    DC B2 DH 
+B3,  ,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8 DC C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC B2 DH 
+      C5                
+B3,DC,   FF      ,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD C1 B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC B2 DH 
+      C5                
+B3,DC,   FF    C1,  ,  
+K8 C4 DH K4 C2 K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC B2 DH 
+      C5                
+B3,DC,   FF    C2,  ,  
+K8 C4 DH K4    K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC B2 DH 
+      C5                
+B3,DC,DH FF    C2,  ,  
+K8 C4 DH K4    K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC B2    
+      C5                
+B3,DC,DH FF    C2,  ,  
+K8 C4 DH K4    K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7 C3 K3 
+   DH B6 DC    DC    B2 
+      C5                
+B3,DC,DH FF    C3,  ,  
+K8 C4 DH K4    K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7    K3 
+   DH B6 DC    DC    B2 
+      C5                
+  ,DC,DH FF    C3,  ,  
+K8 C4 DH K4 B3 K9 B8 C6 
+B4 DH B5 DD    B9 DC C9 
+DD K5 K1 C8    C7 K2 B1 
+DD K6 K7 DD    B7    K3 
+   DH B6 DC    DC    B2 
+      C5                
+  ,DC,DH FF    C3,  ,  
+K8 C4 DH K4 B3 K9 B8 C6 
+B4 DH B5 DD K2 B9 DC C9 
+DD K5 K1 C8    C7    B1 
+DD K6 K7 DD    B7    K3 
+   DH B6 DC    DC    B2 
+      C5                
+  ,  ,DH FF    C3,  ,  
+K8 C4 DH K4 B3 K9 B8 C6 
+B4 DH B5 DD K2 B9    C9 
+DD K5 K1 C8    C7    B1 
+DD K6 K7 DD    B7    K3 
+   DH B6             B2 
+      C5                
