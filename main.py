@@ -142,29 +142,62 @@ class Solitaire:
             if targetX == pickHiX:
                 return 0
 
-            # stackableか判定する
-            if self.backhi[targetX] != []: # もし積み上げ先の牌が空でないなら判定処理を行う
-                targetHeadHi = self.backhi[targetX][0]
-                if pickHi.hiType in dragons: # もし牌が中、發、カード、または花だった場合はnot stackable
-                    return -1
+            # もしbackhiの中から移動させるときに連結させて移動できるなら
+            if pickHiX is not None and self._linkedTailIndex(self.backhi[pickHiX]) != 0:
+                    linkedTailIndex = self._linkedTailIndex(self.backhi[pickHiX])
+                    linkedBlock = self.backhi[pickHiX][0:linkedTailIndex+1]
+                    print([self.printHi(x) for x in linkedBlock])
 
-                if pickHi.hiType == targetHeadHi.hiType: # もし牌の記号が同じならnot stackable
-                    return -1
+                    afterPickedHiXArray = self.backhi[pickHiX][linkedTailIndex + 1:]
 
-                if pickHi.num == targetHeadHi.num: # もし牌の数字が同じならnot stackable
-                    return -1
+                    # 連結部最後尾 (連結部一番奥側)とtargetXの牌を確認してstackableか判定する
+                    if self.backhi[targetX] != []:
+                        targetHeadHi = self.backhi[targetX][0]
+                        if linkedBlock[-1].hiType == targetHeadHi.hiType:
+                            return -1
+                        
+                        if linkedBlock[-1].num == targetHeadHi.num:
+                            return -1
+                        
+                        if linkedBlock[-1].num > targetHeadHi.num:
+                            return -1
+                    
+                    # 判定が通ったら積み上げられる
+                    for blockTailIndex in reversed(range(len(linkedBlock))):
+                        self.backhi[targetX] = appendToHead(self.backhi[targetX], linkedBlock[blockTailIndex])
 
-                if pickHi.num > targetHeadHi.num: # もし積み上げ先の牌よりも今pickしてる牌の数字が大きかったら積み上げられない
-                    return -1
+                    self.backhi[pickHiX] = afterPickedHiXArray
 
-            # それ以外なら積み上げられる
-            self.backhi[targetX] = appendToHead(self.backhi[targetX], pickHi)
-            if pickHiX is not None:
-                self.backhi[pickHiX] = afterPickedHiXArray
-            elif pickLeft is not None:
-                self.left3 = afterLeft3
+                    return 0
+            else:
+                # stackableか判定する
+                if self.backhi[targetX] != []: # もし積み上げ先の牌が空でないなら判定処理を行う
+                    targetHeadHi = self.backhi[targetX][0]
+                    if pickHi.hiType in dragons: # もし牌が中、發、カード、または花だった場合はnot stackable
+                        return -1
 
-            return 0
+                    if targetHeadHi.hiType in dragons:
+                        return -1
+
+                    if pickHi.hiType == targetHeadHi.hiType: # もし牌の記号が同じならnot stackable
+                        return -1
+
+                    if pickHi.num == targetHeadHi.num: # もし牌の数字が同じならnot stackable
+                        return -1
+
+                    if pickHi.num > targetHeadHi.num: # もし積み上げ先の牌よりも今pickしてる牌の数字が大きかったら積み上げられない
+                        return -1
+                # それ以外なら積み上げられる
+
+
+
+                self.backhi[targetX] = appendToHead(self.backhi[targetX], pickHi)
+                if pickHiX is not None:
+                    self.backhi[pickHiX] = afterPickedHiXArray
+                elif pickLeft is not None:
+                    self.left3 = afterLeft3
+
+                return 0
             
         elif targetCenter: # 中央に花の牌の配置を試みる
             if pickHi.hiType == "flower":
@@ -211,6 +244,18 @@ class Solitaire:
             elif pickLeft is not None:
                 self.left3 = afterLeft3
             return 0
+
+
+    def _linkedTailIndex(self, hiArr): # 与えられた列のどこからどこまでが連結しているのかをインデックスで返す
+        linkedTailIndex = 0
+
+        for i in range(len(hiArr)-1):
+            if hiArr[i].hiType != hiArr[i+1].hiType and hiArr[i].num + 1 == hiArr[i + 1].num:
+                linkedTailIndex = i+1
+            else:
+                return linkedTailIndex
+
+
 
     def clearDragon(self):
         # left3または各列の一番手前に同じ三元牌が４つある場合はそれらを消す
@@ -309,51 +354,40 @@ def control(game, pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRi
     
 
 def main():
-    backhiRaw = [["C5", "DD", "DD", "B4", "K8"],
-              ["DH", "K6", "K5", "DH", "C4"],
-              ["B2", "K7", "K1", "B5", "DH"],
-              ["DC", "DD", "C8", "DD", "K4"],
-              ["B3", "B6", "DC", "C1", "C2"],
-              ["DC", "B7", "C7", "B9", "K9"],
-              ["FF", "C3", "K2", "DC", "B8"],
-              ["DH", "K3", "B1", "C9", "C6"]]
+    backhiRaw = [["B6", "DD", "DD", "FF", "B2"], # left 0が手前 4が奥側
+              ["B8", "DC", "B1", "C6", "K2"],
+              ["DC", "B5", "C9", "C8", "K1"],
+              ["DC", "C3", "K3", "B3", "DH"],
+              ["C2", "DC", "DD", "K7", "K9"],
+              ["K8", "B9", "DD", "DH", "K6"],
+              ["DH", "C5", "DH", "B7", "C4"],
+              ["B4", "C7", "C1", "K5", "K4"]]   # right
 
     backHiConverted = [[convertToHiClass(x) for x in a] for a in backhiRaw]
 
     game = Solitaire(backHiConverted)
     # control(game,     pickHiX=None, pickLeft=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None)
     game.printField()
-    control(game, 6,    None, None, True, None, None)
+    control(game, 7, None, None, None, 2, None)
+    game.printField()
+    control(game, 7, None, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, None, None, None, 0)
+    game.printField()
+    control(game, 4, None, None, None, None, 0)
+    game.printField()
+    control(game, 0, None, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, 5, None, None, None)
+    game.printField()
+    control(game, None, 2, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, None, None, 2, None)
+    game.printField()
+    control(game, 5, None, 7, None, None, None)
     game.printField()
 
-    control(game, 2,    None, None, None, 0   , None)
-    game.printField()
-    control(game, None, 0,    6,    None, None, None)
-    game.printField()
-    control(game, 4,    None, None, None, 0   , None)
-    game.printField()
-    control(game, 4,    None, 2,    None, None, None)
-    game.printField()
-    control(game, 0,    None, 2,    None, None, None)
-    game.printField()
-    control(game, 4,    None, None, None, 1, None)
-    game.printField()
-    control(game, 4,    None, None, None, None, 0)
-    game.printField()
-    control(game, 4,    None, None, None, None, 0)
-    game.printField()
-    control(game, 7,    None, None, None, 2, None)
-    game.printField()
-    control(game, 6,    None, 7,    None, None, None)
-    game.printField()
-    control(game, 6,    None, None, None, None, 0)
-    game.printField()
-    control(game, None, 0,    4,    None, None, None)
-    game.printField()
-    control(game, 6,    None, 4,    None, None, None)
-    game.printField()
-    game.clearDragon()
-    game.printField()
+    
 
 
 if __name__ == "__main__":
