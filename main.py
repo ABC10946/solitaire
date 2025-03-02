@@ -366,13 +366,60 @@ def convertToHiClass(hiInput):
             return Hi("kanji", num)
 
 
-def solver(solitaire):
-    pass
+def printHi(hi):
+    if hi is None:
+        return "  "
+    elif   hi.hiType == "bamboo":
+        return "B" + str(hi.num)
+    elif hi.hiType == "circle":
+        return "C" + str(hi.num)
+    elif hi.hiType == "kanji":
+        return "K" + str(hi.num)
+    elif hi.hiType == "chu":
+        return "DC"
+    elif hi.hiType == "hatu":
+        return "DH"
+    elif hi.hiType == "card":
+        return "DD"
+    elif hi.hiType == "flower":
+        return "FF"
+    elif hi.hiType == "disable":
+        return "NO"
+
 
 def control(game, pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight, length=None):
     if game.control(pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight, length) != 0:
         print("fail")
     
+def solver(solitaire): # 終了したらTrueを返す
+    if sum([len(x) for x in solitaire.backhi]) == 0:
+        return True
+
+    # right3に数字をインクリメントできるのであればそれをやる
+    # print(solitaire.right3)
+    # 今の手元牌の一番手前側の牌を取得する。
+    topHis = []
+    for x in range(8):
+        if len(solitaire.backhi[x]) > 0:
+            topHis.append(solitaire.backhi[x][0])
+        else:
+            topHis.append(None)
+
+
+    for i, r in enumerate(solitaire.right3):
+        for j, t in enumerate(topHis):
+            if r is not None and t is not None:
+                if r.hiType == t.hiType and r.num + 1 == t.num:
+                    control(solitaire, j, None, None, None, None, i)
+                    return False
+            else:
+                if t is not None:
+                    if t.num == 1:
+                        control(solitaire, j, None, None, None, None, i)
+                        return False
+
+    return False
+
 
 def main():
     backhiRaw = [["B6", "DD", "DD", "FF", "B2"], # left 0が手前 4が奥側
@@ -475,7 +522,6 @@ def main():
     control(game, 7, None, None, None, None, 1)
     game.printField()
 
-    # should be fail
     control(game, 0, None, 4, None, None, None, 3)
     game.printField()
 
@@ -496,8 +542,14 @@ def main():
 
     control(game, 6, None, 7, None, None, None)
     game.printField()
+    
+    print("solver")
 
-    # clear!!
+
+    while not solver(game):
+        game.printField()
+
+    print("clear!!")
 
 if __name__ == "__main__":
     main()
