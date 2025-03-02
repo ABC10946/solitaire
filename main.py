@@ -387,9 +387,21 @@ def printHi(hi):
         return "NO"
 
 
+controlArr = []
 def control(game, pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight, length=None):
     if game.control(pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight, length) != 0:
         print("fail")
+        return -1
+    else:
+        controlArr.append([pickHiX, pickLeft, targetX, targetCenter, targetLeft, targetRight, length])
+        return 0
+
+def clearDragons(game):
+    if game.clearDragon() == 0:
+        controlArr.append(["clearDragon"])
+        return 0
+    else:
+        return -1
     
 def solver(solitaire): # 終了したらTrueを返す
     if sum([len(x) for x in solitaire.backhi]) == 0:
@@ -410,13 +422,43 @@ def solver(solitaire): # 終了したらTrueを返す
         for j, t in enumerate(topHis):
             if r is not None and t is not None:
                 if r.hiType == t.hiType and r.num + 1 == t.num:
-                    control(solitaire, j, None, None, None, None, i)
-                    return False
+                    if control(solitaire, j, None, None, None, None, i) == 0:
+                        return False
+                    else:
+                        print(solitaire, j, None, None, None, None, i)
+                        return True
             else:
                 if t is not None:
                     if t.num == 1:
-                        control(solitaire, j, None, None, None, None, i)
-                        return False
+                        if control(solitaire, j, None, None, None, None, i) == 0:
+                            return False
+                        else:
+                            print(solitaire, j, None, None, None, None, i)
+                            return True
+
+    # もし同じ種類の三元牌が４つ揃っていたら消す
+    if clearDragons(solitaire) == 0:
+        return False
+    
+    # もし手元牌の一番手前側の中で積み上げられそうなら積み上げる
+    for i, t in enumerate(topHis):
+        for j, u in enumerate(topHis):
+            if t is not None and u is not None:
+                if t.hiType not in dragons and u.hiType not in dragons:
+                    if t.hiType != u.hiType and t.num + 1 == u.num:
+                        if controlArr[-2] != [i, None, j, None, None, None, 1]:
+                            if control(solitaire, i, None, j, None, None, None, 1) == 0:
+                                return False
+                            else:
+                                print(solitaire, i, None, j, None, None, None, 1)
+                                return True
+            if j is None:
+                if control(solitaire, i, None, j, None, None, None, 1) == 0:
+                    return False
+                else:
+                    print(solitaire, i, None, j, None, None, None, 1)
+                    return True
+
 
     return False
 
@@ -534,22 +576,24 @@ def main():
     control(game, 6, None, 2, None, None, None)
     game.printField()
 
-    game.clearDragon()
-    game.printField()
+    # game.clearDragon()
+    # game.printField()
 
-    control(game, 5, None, 6, None, None, None)
-    game.printField()
+    # control(game, 5, None, 6, None, None, None)
+    # game.printField()
 
-    control(game, 6, None, 7, None, None, None)
-    game.printField()
+    # control(game, 6, None, 7, None, None, None)
+    # game.printField()
     
-    print("solver")
+    print("=======solver======")
 
 
     while not solver(game):
         game.printField()
 
     print("clear!!")
+
+    print(controlArr)
 
 if __name__ == "__main__":
     main()
