@@ -96,7 +96,9 @@ class Solitaire:
                 print("pickHiX should below 8")
                 return -1
 
-           
+            if len(self.backhi[pickHiX]) == 0:
+                return -1
+
             pickHi = self.backhi[pickHiX][0]
 
             # pickHiXで手札のX列は牌を取られるので、もし移動が可能だった場合は配列から先頭を削除する。あらかじめ削除済みの配列を作る処理。
@@ -111,6 +113,8 @@ class Solitaire:
                 print("pickLeft should be below 3")
                 return -1
 
+            print(pickLeft)
+            print(self.printHi(self.left3[pickLeft]))
             if self.left3[pickLeft].hiType == "disable":
                 print("その牌は無効化されたため使えません")
                 return -1
@@ -155,7 +159,7 @@ class Solitaire:
                     # もし移動するときのブロック長が指定されていて、それが連結しているブロックの数より少なければ移動可能
                     if length is not None and linkedTailIndex >= length:
                         linkedTailIndex = length-1
-
+                    
                     linkedBlock = self.backhi[pickHiX][0:linkedTailIndex+1]
 
                     afterPickedHiXArray = self.backhi[pickHiX][linkedTailIndex + 1:]
@@ -163,13 +167,19 @@ class Solitaire:
                     # 連結部最後尾 (連結部一番奥側)とtargetXの牌を確認してstackableか判定する
                     if self.backhi[targetX] != []:
                         targetHeadHi = self.backhi[targetX][0]
+                        if len(linkedBlock) == 0:
+                            return -1
+
+                        if targetHeadHi.hiType in dragons:
+                            return -1
+
                         if linkedBlock[-1].hiType == targetHeadHi.hiType:
                             return -1
                         
                         if linkedBlock[-1].num == targetHeadHi.num:
                             return -1
-                        
-                        if linkedBlock[-1].num > targetHeadHi.num:
+
+                        if linkedBlock[-1].num + 1 != targetHeadHi.num:
                             return -1
                     
                     # 判定が通ったら積み上げられる
@@ -195,8 +205,9 @@ class Solitaire:
                     if pickHi.num == targetHeadHi.num: # もし牌の数字が同じならnot stackable
                         return -1
 
-                    if pickHi.num > targetHeadHi.num: # もし積み上げ先の牌よりも今pickしてる牌の数字が大きかったら積み上げられない
+                    if pickHi.num + 1 != targetHeadHi.num:
                         return -1
+
                 # それ以外なら積み上げられる
 
 
@@ -403,62 +414,101 @@ def clearDragons(game):
     else:
         return -1
     
+class Node:
+    def __init__(self, parent, game, controlArr, children=[], depth=0, dead=False, controlArrIdx=None):
+        self.game = game
+        self.controlArr = controlArr
+        self.children = children
+        self.controlArrIdx = controlArrIdx
+        self.parent = parent
+        self.depth = depth
+        self.dead = dead
+
+    def run(self):
+        res = None
+        if self.controlArr[7]:
+            res = self.game.clearDragon()
+        else:
+            res = self.game.control(self.controlArr[0], self.controlArr[1], self.controlArr[2], self.controlArr[3], self.controlArr[4], self.controlArr[5], self.controlArr[6])
+
+        if res != 0:
+            return -1
+        else:
+            return 0
+
+
 def solver(solitaire): # 終了したらTrueを返す
     if sum([len(x) for x in solitaire.backhi]) == 0:
         return True
 
-    # right3に数字をインクリメントできるのであればそれをやる
-    # print(solitaire.right3)
-    # 今の手元牌の一番手前側の牌を取得する。
-    topHis = []
-    for x in range(8):
-        if len(solitaire.backhi[x]) > 0:
-            topHis.append(solitaire.backhi[x][0])
-        else:
-            topHis.append(None)
+    node = Node(None, solitaire, [None, None, None, None, None, None, None, None], [])
+    controlArrs = []
+
+    controlArrs.append([None, None, None, None, None, None, None, True])
+
+    # 手元牌からの移動
+    for pickHiX in range(8):
+        for targetX in range(8):
+            for length in range(1, 10):
+                if pickHiX != targetX:
+                    controlArrs.append([pickHiX, None, targetX, None, None, None, None, length])
+
+    for pickHiX in range(8):
+        for targetLeft in range(3):
+            controlArrs.append([pickHiX, None, None, None, targetLeft, None, None, None])
+
+    for pickHiX in range(8):
+        for targetRight in range(3):
+            controlArrs.append([pickHiX, None, None, None, None, targetRight, None, None])
+
+    for pickHiX in range(8):
+        controlArrs.append([pickHiX, None, None, True, None, None, None, None])
 
 
-    for i, r in enumerate(solitaire.right3):
-        for j, t in enumerate(topHis):
-            if r is not None and t is not None:
-                if r.hiType == t.hiType and r.num + 1 == t.num:
-                    if control(solitaire, j, None, None, None, None, i) == 0:
-                        return False
-                    else:
-                        print(solitaire, j, None, None, None, None, i)
-                        return True
-            else:
-                if t is not None:
-                    if t.num == 1:
-                        if control(solitaire, j, None, None, None, None, i) == 0:
-                            return False
-                        else:
-                            print(solitaire, j, None, None, None, None, i)
-                            return True
+    # left3からの移動
+    for pickLeft in range(3):
+        for targetX in range(8):
+            controlArrs.append([None, pickLeft, targetX, None, None, None, None, None])
 
-    # もし同じ種類の三元牌が４つ揃っていたら消す
-    if clearDragons(solitaire) == 0:
-        return False
-    
-    # もし手元牌の一番手前側の中で積み上げられそうなら積み上げる
-    for i, t in enumerate(topHis):
-        for j, u in enumerate(topHis):
-            if t is not None and u is not None:
-                if t.hiType not in dragons and u.hiType not in dragons:
-                    if t.hiType != u.hiType and t.num + 1 == u.num:
-                        if controlArr[-2] != [i, None, j, None, None, None, 1]:
-                            if control(solitaire, i, None, j, None, None, None, 1) == 0:
-                                return False
-                            else:
-                                print(solitaire, i, None, j, None, None, None, 1)
-                                return True
-            if j is None:
-                if control(solitaire, i, None, j, None, None, None, 1) == 0:
-                    return False
-                else:
-                    print(solitaire, i, None, j, None, None, None, 1)
-                    return True
+    for pickLeft in range(3):
+        for targetRight in range(3):
+            controlArrs.append([None, pickLeft, None, None, None, targetRight, None, None])
 
+    for pickLeft in range(3):
+        controlArrs.append([None, pickLeft, None, None, True, None, None, None])
+
+
+    while sum([len(x) for x in node.game.backhi]) != 0:
+        print(node.depth)
+        print(node.game.printField())
+        print(node.children)
+        pathSuccess = False
+
+        for idx, controlArr in enumerate(controlArrs):
+            if idx not in [x.controlArrIdx for x in node.children]:
+                node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), controlArr, children=[], depth=node.depth+1, controlArrIdx=idx)
+                res = node_.run()
+                if res != -1:
+                    pathSuccess = True
+                    print(controlArr)
+                    node.children.append(node_)
+                    break
+
+        
+        # もし全子経路が使えない経路であれば親経路はdeadフラグを立てる。
+        if not pathSuccess:
+            node.dead = True
+            node.children = []
+            node = node.parent
+
+        # もし子経路のうち使える経路があればそれを探索先とする
+        print([x.dead for x in node.children])
+        for i in node.children:
+            # 死んでいない経路を次の経路にする
+            if not i.dead:
+                node = i
+
+        
 
     return False
 
@@ -588,9 +638,10 @@ def main():
     print("=======solver======")
 
 
-    while not solver(game):
-        game.printField()
+    # while not solver(game):
+    #     game.printField()
 
+    solver(game)
     print("clear!!")
 
     print(controlArr)
