@@ -369,21 +369,24 @@ class Solitaire:
             else:
                 hiTypeList.append(x.hiType)
 
-        disableLeft3CellIdx = hiTypeList.index(removableDragon)
-        self.left3[disableLeft3CellIdx].hiType = "disable"
-        
-        # 三元牌削除処理
-        # 4つそろってる三元牌を消す
-        for i, elem in enumerate(self.left3):
-            if elem is not None:
-                if elem.hiType == removableDragon:
-                    self.left3[i] = None
+        # 三元牌がleft3にある場合に削除処理を実行する
+        if removableDragon in hiTypeList:
+            disableLeft3CellIdx = hiTypeList.index(removableDragon)
+            self.left3[disableLeft3CellIdx].hiType = "disable"
+            
+            # 三元牌削除処理
+            # 4つそろってる三元牌を消す
+            for i, elem in enumerate(self.left3):
+                if elem is not None:
+                    if elem.hiType == removableDragon:
+                        self.left3[i] = None
 
-        for x in range(8):
-            if len(self.backhi[x]) > 0:
-                head = self.backhi[x][0].hiType
-                if head == removableDragon:
-                    self.backhi[x] = self.backhi[x][1:]
+            for x in range(8):
+                if len(self.backhi[x]) > 0:
+                    head = self.backhi[x][0].hiType
+                    if head == removableDragon:
+                        self.backhi[x] = self.backhi[x][1:]
 
-        
-        return 0
+            return 0
+        else:
+            return -1
