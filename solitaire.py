@@ -362,7 +362,14 @@ class Solitaire:
 
         # print(self.left3)
 
-        disableLeft3CellIdx = [x.hiType for x in self.left3].index(removableDragon)
+        hiTypeList = []
+        for x in self.left3:
+            if x is None:
+                hiTypeList.append(None)
+            else:
+                hiTypeList.append(x.hiType)
+
+        disableLeft3CellIdx = hiTypeList.index(removableDragon)
         self.left3[disableLeft3CellIdx].hiType = "disable"
         
         # 三元牌削除処理
