@@ -1,4 +1,5 @@
 import copy
+dragons = ["chu", "hatu", "card", "flower", "disable"] # disableは三元牌４つそろったときleft3の埋める時に用いる
 
 class Node:
     def __init__(self, parent, game, controlArr, children=[], depth=0, dead=False):
@@ -60,8 +61,42 @@ class Solver:
                 return node
 
         controlArrs = []
-        controlArrs.append([None, None, None, None, None, None, None, True])
 
+        # もし手元牌の位置番手前で、その次に三元牌があるときは、その三元牌を移動させるために、手元牌を移動させる
+        for pickHiX in range(8):
+            if len(node.game.backhi[pickHiX]) > 1:
+                if node.game.backhi[pickHiX][1].hiType:
+                    for targetX in range(8):
+                        if pickHiX != targetX:
+                            controlArrs.append([pickHiX, None, targetX, None, None, None, None, None])
+                    
+                    for targetLeft in range(3):
+                        controlArrs.append([pickHiX, None, None, None, targetLeft, None, None, None])
+            
+                    for i in controlArrs:
+                        node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
+                        node_ = self.solver(node_)
+
+                        if node_.getCleared():
+                            node.children.append(node_)
+                            node.setCleared()
+                            return node
+
+        for pickHiX in range(8):
+            for targetRight in range(3):
+                controlArrs.append([pickHiX, None, None, None, None, targetRight, None, None])
+
+            for i in controlArrs:
+                node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
+                node_ = self.solver(node_)
+
+                if node_.getCleared():
+                    node.children.append(node_)
+                    node.setCleared()
+                    return node
+
+        controlArrs = []
+        controlArrs.append([None, None, None, None, None, None, None, True])
         # 手元牌からの移動
         for pickHiX in range(8):
             for targetX in range(8):
@@ -73,9 +108,6 @@ class Solver:
             for targetLeft in range(3):
                 controlArrs.append([pickHiX, None, None, None, targetLeft, None, None, None])
 
-        for pickHiX in range(8):
-            for targetRight in range(3):
-                controlArrs.append([pickHiX, None, None, None, None, targetRight, None, None])
 
         for pickHiX in range(8):
             controlArrs.append([pickHiX, None, None, True, None, None, None, None])
