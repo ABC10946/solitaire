@@ -113,8 +113,6 @@ class Solitaire:
                 print("pickLeft should be below 3")
                 return -1
 
-            print(pickLeft)
-            print(self.printHi(self.left3[pickLeft]))
             if self.left3[pickLeft].hiType == "disable":
                 print("その牌は無効化されたため使えません")
                 return -1
@@ -252,8 +250,7 @@ class Solitaire:
             # 右側に牌を配置するときは1から同じ種類の牌がインクリメントされなければいけない
             if self.right3[targetRight] is None and pickHi.num == 1:
                 self.right3[targetRight] = pickHi
-
-            elif self.right3[targetRight].hiType == pickHi.hiType and self.right3[targetRight].num == pickHi.num - 1:
+            elif self.right3[targetRight] is not None and self.right3[targetRight].hiType == pickHi.hiType and self.right3[targetRight].num == pickHi.num - 1:
                 self.right3[targetRight] = pickHi
             else:
                 return -1
@@ -285,6 +282,8 @@ class Solitaire:
 
         # left3にあるかの判定
 
+        if self.left3[0] is None and self.left3[1] is None and self.left3[2] is None:
+            return -1
 
         for i in self.left3:
             if i is not None:
@@ -314,11 +313,15 @@ class Solitaire:
         elif count[2] == 4:
             removableDragon = "card"
 
+        if removableDragon is None:
+            return -1
+
         # left3の一つを埋める (空いていないまたは同じ牌種のものがなければ削除不可)
         if None not in self.left3 and removableDragon not in [x.hiType for x in self.left3]:
             return -1
 
         # print(self.left3)
+
         disableLeft3CellIdx = [x.hiType for x in self.left3].index(removableDragon)
         self.left3[disableLeft3CellIdx].hiType = "disable"
         
@@ -481,31 +484,38 @@ def solver(solitaire): # 終了したらTrueを返す
     while sum([len(x) for x in node.game.backhi]) != 0:
         print(node.depth)
         print(node.game.printField())
-        print(node.children)
+        print('child', node.children)
+        print([x.controlArrIdx for x in node.children])
         pathSuccess = False
 
         for idx, controlArr in enumerate(controlArrs):
             if idx not in [x.controlArrIdx for x in node.children]:
-                node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), controlArr, children=[], depth=node.depth+1, controlArrIdx=idx)
+                node_ = Node(node, copy.deepcopy(node.game), controlArr, children=[], depth=node.depth+1, controlArrIdx=idx)
+
                 res = node_.run()
                 if res != -1:
                     pathSuccess = True
                     print(controlArr)
                     node.children.append(node_)
+                    print('## children append', node.children)
                     break
 
         
         # もし全子経路が使えない経路であれば親経路はdeadフラグを立てる。
         if not pathSuccess:
+            print("dead")
             node.dead = True
-            node.children = []
+            node.child = []
             node = node.parent
+            print('return parent!!!!')
+            continue
 
         # もし子経路のうち使える経路があればそれを探索先とする
-        print([x.dead for x in node.children])
+        print('isDead', [x.dead for x in node.children])
         for i in node.children:
             # 死んでいない経路を次の経路にする
             if not i.dead:
+                print('next!!!!')
                 node = i
 
         
@@ -528,103 +538,103 @@ def main():
     game = Solitaire(backHiConverted)
     # control(game,     pickHiX=None, pickLeft=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None)
     game.printField()
-    control(game, 7, None, None, None, 2, None)
-    game.printField()
-    control(game, 7, None, 5, None, None, None)
-    game.printField()
-    control(game, 7, None, None, None, None, 0)
-    game.printField()
-    control(game, 4, None, None, None, None, 0)
-    game.printField()
-    control(game, 0, None, 5, None, None, None)
-    game.printField()
-    control(game, 7, None, 5, None, None, None)
-    game.printField()
-    control(game, None, 2, 5, None, None, None)
-    game.printField()
-    control(game, 7, None, None, None, 2, None)
-    game.printField()
-    control(game, 5, None, 7, None, None, None)
-    game.printField()
-    control(game, 4, None, None, None, 1, None)
-    game.printField()
-    control(game, 1, None, None, None, 0, None)
-    game.printField()
+    # control(game, 7, None, None, None, 2, None)
+    # game.printField()
+    # control(game, 7, None, 5, None, None, None)
+    # game.printField()
+    # control(game, 7, None, None, None, None, 0)
+    # game.printField()
+    # control(game, 4, None, None, None, None, 0)
+    # game.printField()
+    # control(game, 0, None, 5, None, None, None)
+    # game.printField()
+    # control(game, 7, None, 5, None, None, None)
+    # game.printField()
+    # control(game, None, 2, 5, None, None, None)
+    # game.printField()
+    # control(game, 7, None, None, None, 2, None)
+    # game.printField()
+    # control(game, 5, None, 7, None, None, None)
+    # game.printField()
+    # control(game, 4, None, None, None, 1, None)
+    # game.printField()
+    # control(game, 1, None, None, None, 0, None)
+    # game.printField()
 
-    game.clearDragon()
-    game.printField()
+    # game.clearDragon()
+    # game.printField()
 
-    control(game, 1, None, None, None, None, 1)
-    game.printField()
+    # control(game, 1, None, None, None, None, 1)
+    # game.printField()
 
-    control(game, 2, None, 1, None, None, None)
-    game.printField()
-    
-    control(game, None, 2, 1, None, None, None)
-    game.printField()
+    # control(game, 2, None, 1, None, None, None)
+    # game.printField()
+    # 
+    # control(game, None, 2, 1, None, None, None)
+    # game.printField()
 
-    control(game, None, 0, 2, None, None, None)
-    game.printField()
+    # control(game, None, 0, 2, None, None, None)
+    # game.printField()
 
-    control(game, 4, None, None, None, 0, None)
-    game.printField()
+    # control(game, 4, None, None, None, 0, None)
+    # game.printField()
 
-    control(game, 0, None, None, None, 2, None)
-    game.printField()
+    # control(game, 0, None, None, None, 2, None)
+    # game.printField()
 
-    game.clearDragon()
-    game.printField()
+    # game.clearDragon()
+    # game.printField()
 
-    control(game, 0, None, None, True, None, None)
-    game.printField()
+    # control(game, 0, None, None, True, None, None)
+    # game.printField()
 
-    control(game, 0, None, None, None, None, 1)
-    game.printField()
+    # control(game, 0, None, None, None, None, 1)
+    # game.printField()
 
-    control(game, 1, None, 4, None, None, None)
-    game.printField()
+    # control(game, 1, None, 4, None, None, None)
+    # game.printField()
 
-    control(game, 4, None, 2, None, None, None)
-    game.printField()
+    # control(game, 4, None, 2, None, None, None)
+    # game.printField()
 
-    control(game, 2, None, 0, None, None, None)
-    game.printField()
+    # control(game, 2, None, 0, None, None, None)
+    # game.printField()
 
-    control(game, 2, None, 4, None, None, None)
-    game.printField()
+    # control(game, 2, None, 4, None, None, None)
+    # game.printField()
 
-    control(game, 2, None, None, None, None, 2)
-    game.printField()
+    # control(game, 2, None, None, None, None, 2)
+    # game.printField()
 
-    control(game, 1, None, None, None, None, 2)
-    game.printField()
+    # control(game, 1, None, None, None, None, 2)
+    # game.printField()
 
-    control(game, 3, None, None, None, None, 0)
-    game.printField()
+    # control(game, 3, None, None, None, None, 0)
+    # game.printField()
 
-    control(game, 3, None, None, None, None, 2)
-    game.printField()
+    # control(game, 3, None, None, None, None, 2)
+    # game.printField()
 
-    control(game, 3, None, None, None, None, 1)
-    game.printField()
+    # control(game, 3, None, None, None, None, 1)
+    # game.printField()
 
-    control(game, 0, None, None, None, None, 2)
-    game.printField()
+    # control(game, 0, None, None, None, None, 2)
+    # game.printField()
 
-    control(game, 7, None, None, None, None, 1)
-    game.printField()
+    # control(game, 7, None, None, None, None, 1)
+    # game.printField()
 
-    control(game, 0, None, 4, None, None, None, 3)
-    game.printField()
+    # control(game, 0, None, 4, None, None, None, 3)
+    # game.printField()
 
-    control(game, 7, None, 0, None, None, None, 3)
-    game.printField()
+    # control(game, 7, None, 0, None, None, None, 3)
+    # game.printField()
 
-    control(game, 6, None, None, None, 2, None)
-    game.printField()
+    # control(game, 6, None, None, None, 2, None)
+    # game.printField()
 
-    control(game, 6, None, 2, None, None, None)
-    game.printField()
+    # control(game, 6, None, 2, None, None, None)
+    # game.printField()
 
     # game.clearDragon()
     # game.printField()
