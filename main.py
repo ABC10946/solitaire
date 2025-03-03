@@ -82,7 +82,7 @@ class Solitaire:
 
         # pickはどれか一つしか指定できない
         if pickHiX is not None and pickLeft is not None:
-            print("pick control should be only 1")
+            # print("pick control should be only 1")
             return -1
         
         pickHi = None
@@ -93,7 +93,7 @@ class Solitaire:
         # もし手札の方から牌を取得するなら
         if pickHiX is not None:
             if pickHiX > 7:
-                print("pickHiX should below 8")
+                # print("pickHiX should below 8")
                 return -1
 
             if len(self.backhi[pickHiX]) == 0:
@@ -110,11 +110,11 @@ class Solitaire:
 
         elif pickLeft is not None:
             if pickLeft > 2:
-                print("pickLeft should be below 3")
+                # print("pickLeft should be below 3")
                 return -1
 
             if self.left3[pickLeft].hiType == "disable":
-                print("その牌は無効化されたため使えません")
+                # print("その牌は無効化されたため使えません")
                 return -1
             
             pickHi = self.left3[pickLeft]
@@ -128,7 +128,7 @@ class Solitaire:
 
         # targetはどれか一つしか指定できない
         if targetX is not None and targetCenter is not None and targetLeft is not None and targetRight is not None:
-            print("target control should be only 1")
+            # print("target control should be only 1")
             return -1
         
 
@@ -144,7 +144,7 @@ class Solitaire:
 
         if targetX is not None:
             if targetX > 7:
-                print("targetX should below 8")
+                # print("targetX should below 8")
                 return -1
 
             if targetX == pickHiX:
@@ -229,13 +229,13 @@ class Solitaire:
                 return -1
         elif targetLeft is not None:
             if targetLeft > 2:
-                print("targetLeft should below 3")
+                # print("targetLeft should below 3")
                 return -1
 
             if self.left3[targetLeft] is None:
                 self.left3[targetLeft] = pickHi
             else:
-                print("targetLeft not empty")
+                # print("targetLeft not empty")
                 return -1
 
             if pickHiX is not None:
@@ -244,7 +244,7 @@ class Solitaire:
             return 0
         elif targetRight is not None:
             if targetRight > 2:
-                print("targetRight should below 3")
+                # print("targetRight should below 3")
                 return -1
 
             # 右側に牌を配置するときは1から同じ種類の牌がインクリメントされなければいけない
@@ -418,14 +418,20 @@ def clearDragons(game):
         return -1
     
 class Node:
-    def __init__(self, parent, game, controlArr, children=[], depth=0, dead=False, controlArrIdx=None):
+    def __init__(self, parent, game, controlArr, children=[], depth=0, dead=False):
         self.game = game
         self.controlArr = controlArr
         self.children = children
-        self.controlArrIdx = controlArrIdx
         self.parent = parent
         self.depth = depth
         self.dead = dead
+        self.cleared = False
+
+    def setCleared(self):
+        self.cleared = True
+
+    def getCleared(self):
+        return self.cleared
 
     def run(self):
         res = None
@@ -440,13 +446,24 @@ class Node:
             return 0
 
 
-def solver(solitaire): # 終了したらTrueを返す
-    if sum([len(x) for x in solitaire.backhi]) == 0:
-        return True
+def solver(node): # 終了したらTrueを返す
+    if sum([len(x) for x in node.game.backhi]) == 0:
+        print("====clear====")
+        node.setCleared()
+        return node
 
-    node = Node(None, solitaire, [None, None, None, None, None, None, None, None], [])
+    if node.run() == -1:
+        node.dead = True
+        return node
+    
+    if node.parent is not None and node.parent.parent is not None:
+        grandNode = node.parent.parent
+        if grandNode.game.backhi == node.game.backhi and grandNode.game.left3 == node.game.left3 and grandNode.game.right3 == node.game.right3:
+            print("------------grand match----------------")
+            node.dead = True
+            return node
+
     controlArrs = []
-
     controlArrs.append([None, None, None, None, None, None, None, True])
 
     # 手元牌からの移動
@@ -480,47 +497,16 @@ def solver(solitaire): # 終了したらTrueを返す
     for pickLeft in range(3):
         controlArrs.append([None, pickLeft, None, None, True, None, None, None])
 
+    for i in controlArrs:
+        node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
+        node_ = solver(node_)
 
-    while sum([len(x) for x in node.game.backhi]) != 0:
-        print(node.depth)
-        print(node.game.printField())
-        print('child', node.children)
-        print([x.controlArrIdx for x in node.children])
-        pathSuccess = False
+        if node_.getCleared():
+            node.children.append(node_)
+            node.setCleared()
+            return node
 
-        for idx, controlArr in enumerate(controlArrs):
-            if idx not in [x.controlArrIdx for x in node.children]:
-                node_ = Node(node, copy.deepcopy(node.game), controlArr, children=[], depth=node.depth+1, controlArrIdx=idx)
-
-                res = node_.run()
-                if res != -1:
-                    pathSuccess = True
-                    print(controlArr)
-                    node.children.append(node_)
-                    print('## children append', node.children)
-                    break
-
-        
-        # もし全子経路が使えない経路であれば親経路はdeadフラグを立てる。
-        if not pathSuccess:
-            print("dead")
-            node.dead = True
-            node.child = []
-            node = node.parent
-            print('return parent!!!!')
-            continue
-
-        # もし子経路のうち使える経路があればそれを探索先とする
-        print('isDead', [x.dead for x in node.children])
-        for i in node.children:
-            # 死んでいない経路を次の経路にする
-            if not i.dead:
-                print('next!!!!')
-                node = i
-
-        
-
-    return False
+    return node
 
 
 def main():
@@ -538,103 +524,103 @@ def main():
     game = Solitaire(backHiConverted)
     # control(game,     pickHiX=None, pickLeft=None, targetX=None, targetCenter=None, targetLeft=None, targetRight=None)
     game.printField()
-    # control(game, 7, None, None, None, 2, None)
-    # game.printField()
-    # control(game, 7, None, 5, None, None, None)
-    # game.printField()
-    # control(game, 7, None, None, None, None, 0)
-    # game.printField()
-    # control(game, 4, None, None, None, None, 0)
-    # game.printField()
-    # control(game, 0, None, 5, None, None, None)
-    # game.printField()
-    # control(game, 7, None, 5, None, None, None)
-    # game.printField()
-    # control(game, None, 2, 5, None, None, None)
-    # game.printField()
-    # control(game, 7, None, None, None, 2, None)
-    # game.printField()
-    # control(game, 5, None, 7, None, None, None)
-    # game.printField()
-    # control(game, 4, None, None, None, 1, None)
-    # game.printField()
-    # control(game, 1, None, None, None, 0, None)
-    # game.printField()
+    control(game, 7, None, None, None, 2, None)
+    game.printField()
+    control(game, 7, None, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, None, None, None, 0)
+    game.printField()
+    control(game, 4, None, None, None, None, 0)
+    game.printField()
+    control(game, 0, None, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, 5, None, None, None)
+    game.printField()
+    control(game, None, 2, 5, None, None, None)
+    game.printField()
+    control(game, 7, None, None, None, 2, None)
+    game.printField()
+    control(game, 5, None, 7, None, None, None)
+    game.printField()
+    control(game, 4, None, None, None, 1, None)
+    game.printField()
+    control(game, 1, None, None, None, 0, None)
+    game.printField()
 
-    # game.clearDragon()
-    # game.printField()
+    game.clearDragon()
+    game.printField()
 
-    # control(game, 1, None, None, None, None, 1)
-    # game.printField()
+    control(game, 1, None, None, None, None, 1)
+    game.printField()
 
-    # control(game, 2, None, 1, None, None, None)
-    # game.printField()
-    # 
-    # control(game, None, 2, 1, None, None, None)
-    # game.printField()
+    control(game, 2, None, 1, None, None, None)
+    game.printField()
+    
+    control(game, None, 2, 1, None, None, None)
+    game.printField()
 
-    # control(game, None, 0, 2, None, None, None)
-    # game.printField()
+    control(game, None, 0, 2, None, None, None)
+    game.printField()
 
-    # control(game, 4, None, None, None, 0, None)
-    # game.printField()
+    control(game, 4, None, None, None, 0, None)
+    game.printField()
 
-    # control(game, 0, None, None, None, 2, None)
-    # game.printField()
+    control(game, 0, None, None, None, 2, None)
+    game.printField()
 
-    # game.clearDragon()
-    # game.printField()
+    game.clearDragon()
+    game.printField()
 
-    # control(game, 0, None, None, True, None, None)
-    # game.printField()
+    control(game, 0, None, None, True, None, None)
+    game.printField()
 
-    # control(game, 0, None, None, None, None, 1)
-    # game.printField()
+    control(game, 0, None, None, None, None, 1)
+    game.printField()
 
-    # control(game, 1, None, 4, None, None, None)
-    # game.printField()
+    control(game, 1, None, 4, None, None, None)
+    game.printField()
 
-    # control(game, 4, None, 2, None, None, None)
-    # game.printField()
+    control(game, 4, None, 2, None, None, None)
+    game.printField()
 
-    # control(game, 2, None, 0, None, None, None)
-    # game.printField()
+    control(game, 2, None, 0, None, None, None)
+    game.printField()
 
-    # control(game, 2, None, 4, None, None, None)
-    # game.printField()
+    control(game, 2, None, 4, None, None, None)
+    game.printField()
 
-    # control(game, 2, None, None, None, None, 2)
-    # game.printField()
+    control(game, 2, None, None, None, None, 2)
+    game.printField()
 
-    # control(game, 1, None, None, None, None, 2)
-    # game.printField()
+    control(game, 1, None, None, None, None, 2)
+    game.printField()
 
-    # control(game, 3, None, None, None, None, 0)
-    # game.printField()
+    control(game, 3, None, None, None, None, 0)
+    game.printField()
 
-    # control(game, 3, None, None, None, None, 2)
-    # game.printField()
+    control(game, 3, None, None, None, None, 2)
+    game.printField()
 
-    # control(game, 3, None, None, None, None, 1)
-    # game.printField()
+    control(game, 3, None, None, None, None, 1)
+    game.printField()
 
-    # control(game, 0, None, None, None, None, 2)
-    # game.printField()
+    control(game, 0, None, None, None, None, 2)
+    game.printField()
 
-    # control(game, 7, None, None, None, None, 1)
-    # game.printField()
+    control(game, 7, None, None, None, None, 1)
+    game.printField()
 
-    # control(game, 0, None, 4, None, None, None, 3)
-    # game.printField()
+    control(game, 0, None, 4, None, None, None, 3)
+    game.printField()
 
-    # control(game, 7, None, 0, None, None, None, 3)
-    # game.printField()
+    control(game, 7, None, 0, None, None, None, 3)
+    game.printField()
 
-    # control(game, 6, None, None, None, 2, None)
-    # game.printField()
+    control(game, 6, None, None, None, 2, None)
+    game.printField()
 
-    # control(game, 6, None, 2, None, None, None)
-    # game.printField()
+    control(game, 6, None, 2, None, None, None)
+    game.printField()
 
     # game.clearDragon()
     # game.printField()
@@ -651,10 +637,22 @@ def main():
     # while not solver(game):
     #     game.printField()
 
-    solver(game)
+    # Node(parent, game, controlArr, children=[], depth=0, dead=False):
+    node = Node(None, game, [None, None, None, None, None, None, None, None], [], depth=0, dead=False)
+
+    solver(node)
     print("clear!!")
 
-    print(controlArr)
+    while True:
+        print(node.controlArr)
+        print(len(node.children))
+        node.run()
+        node.game.printField()
+        if len(node.children) != 0:
+            node = node.children[0]
+        else:
+            break
+
 
 if __name__ == "__main__":
     main()
