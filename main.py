@@ -1,6 +1,6 @@
 import copy
 from solitaire import Solitaire, Hi
-from solver import Node, solver
+from solver import Node, Solver
 
 
 def convertToHiClass(hiInput):
@@ -180,8 +180,8 @@ def main():
     control(game, 6, None, None, None, 2, None)
     game.printField()
 
-    control(game, 6, None, 2, None, None, None)
-    game.printField()
+    # control(game, 6, None, 2, None, None, None)
+    # game.printField()
 
     # game.clearDragon()
     # game.printField()
@@ -201,7 +201,8 @@ def main():
     # Node(parent, game, controlArr, children=[], depth=0, dead=False):
     node = Node(None, game, [None, None, None, None, None, None, None, None], [], depth=0, dead=False)
 
-    solver(node)
+    solver = Solver()
+    solver.solver(node)
     print("clear!!")
 
     while True:

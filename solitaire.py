@@ -21,6 +21,28 @@ class Hi:
         else:
             print("Error, " + hiType + " is not hiTypes")
 
+    def __eq__(self, other):
+        if self is None and other is None:
+            return True
+
+        if other is None:
+            return False
+
+        if self.hiType is not None and other.hiType is not None:
+            if self.hiType == other.hiType:
+                if self.num is not None and other.num is not None:
+                    if self.num == other.num:
+                        return True
+                    else:
+                        return False
+
+                return True
+            else:
+                return False
+            
+    def __hash__(self):
+        return hash((self.hiType, self.num))
+
 
 class Solitaire:
     def __init__(self, backhi): # backhi is 8 length of [Hi]
@@ -31,6 +53,12 @@ class Solitaire:
         self.right3 = [None, None, None]
         self.center = None # center cell is for flower hi
         self.backhi = backhi
+
+    def __eq__(self, other):
+        if self.left3 == other.left3 and self.right3 == other.right3 and self.center == other.center and self.backhi == other.backhi:
+            return True
+        else:
+            return False
 
     def _validate(self, backhi):
         if len(backhi) != 8:
@@ -119,6 +147,10 @@ class Solitaire:
         elif pickLeft is not None:
             if pickLeft > 2:
                 # print("pickLeft should be below 3")
+                return -1
+            
+            if self.left3[pickLeft] is None:
+                # print("pickLeft is empty")
                 return -1
 
             if self.left3[pickLeft].hiType == "disable":

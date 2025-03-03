@@ -28,65 +28,78 @@ class Node:
         else:
             return 0
 
+class Solver:
+    def __init__(self):
+        self.visited_states = set()
 
-def solver(node): # 終了したらTrueを返す
-    if sum([len(x) for x in node.game.backhi]) == 0:
-        print("====clear====")
-        node.setCleared()
-        return node
-
-    if node.run() == -1:
-        node.dead = True
-        return node
-    
-    if node.parent is not None and node.parent.parent is not None:
-        grandNode = node.parent.parent
-        if grandNode.game.backhi == node.game.backhi and grandNode.game.left3 == node.game.left3 and grandNode.game.right3 == node.game.right3:
-            print("------------grand match----------------")
-            node.dead = True
-            return node
-
-    controlArrs = []
-    controlArrs.append([None, None, None, None, None, None, None, True])
-
-    # 手元牌からの移動
-    for pickHiX in range(8):
-        for targetX in range(8):
-            for length in range(1, 10):
-                if pickHiX != targetX:
-                    controlArrs.append([pickHiX, None, targetX, None, None, None, None, length])
-
-    for pickHiX in range(8):
-        for targetLeft in range(3):
-            controlArrs.append([pickHiX, None, None, None, targetLeft, None, None, None])
-
-    for pickHiX in range(8):
-        for targetRight in range(3):
-            controlArrs.append([pickHiX, None, None, None, None, targetRight, None, None])
-
-    for pickHiX in range(8):
-        controlArrs.append([pickHiX, None, None, True, None, None, None, None])
-
-
-    # left3からの移動
-    for pickLeft in range(3):
-        for targetX in range(8):
-            controlArrs.append([None, pickLeft, targetX, None, None, None, None, None])
-
-    for pickLeft in range(3):
-        for targetRight in range(3):
-            controlArrs.append([None, pickLeft, None, None, None, targetRight, None, None])
-
-    for pickLeft in range(3):
-        controlArrs.append([None, pickLeft, None, None, True, None, None, None])
-
-    for i in controlArrs:
-        node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
-        node_ = solver(node_)
-
-        if node_.getCleared():
-            node.children.append(node_)
+    def solver(self, node): # 終了したらTrueを返す
+        if sum([len(x) for x in node.game.backhi]) == 0:
+            print("====clear====")
             node.setCleared()
             return node
 
-    return node
+        if node.run() == -1:
+            node.dead = True
+            return node
+        
+        print(node.depth)
+        print(node.controlArr)
+        print(node.game.printField())
+
+        state = (tuple(tuple(x) for x in node.game.backhi), tuple(node.game.left3), tuple(node.game.right3), node.game.center)
+        if state in self.visited_states:
+            return node
+
+        self.visited_states.add(state)       
+
+        if node.parent is not None and node.parent.parent is not None:
+            grandNode = node.parent.parent
+            if grandNode.game.backhi == node.game.backhi and grandNode.game.left3 == node.game.left3 and grandNode.game.right3 == node.game.right3:
+                print("------------grand match----------------")
+                node.dead = True
+                return node
+
+        controlArrs = []
+        controlArrs.append([None, None, None, None, None, None, None, True])
+
+        # 手元牌からの移動
+        for pickHiX in range(8):
+            for targetX in range(8):
+                for length in range(1, 10):
+                    if pickHiX != targetX:
+                        controlArrs.append([pickHiX, None, targetX, None, None, None, None, length])
+
+        for pickHiX in range(8):
+            for targetLeft in range(3):
+                controlArrs.append([pickHiX, None, None, None, targetLeft, None, None, None])
+
+        for pickHiX in range(8):
+            for targetRight in range(3):
+                controlArrs.append([pickHiX, None, None, None, None, targetRight, None, None])
+
+        for pickHiX in range(8):
+            controlArrs.append([pickHiX, None, None, True, None, None, None, None])
+
+
+        # left3からの移動
+        for pickLeft in range(3):
+            for targetX in range(8):
+                controlArrs.append([None, pickLeft, targetX, None, None, None, None, None])
+
+        for pickLeft in range(3):
+            for targetRight in range(3):
+                controlArrs.append([None, pickLeft, None, None, None, targetRight, None, None])
+
+        for pickLeft in range(3):
+            controlArrs.append([None, pickLeft, None, None, True, None, None, None])
+
+        for i in controlArrs:
+            node_ = Node(copy.deepcopy(node), copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
+            node_ = self.solver(node_)
+
+            if node_.getCleared():
+                node.children.append(node_)
+                node.setCleared()
+                return node
+
+        return node
