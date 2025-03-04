@@ -202,7 +202,7 @@ def main():
     node = Node(None, game, [None, None, None, None, None, None, None, None], [], depth=0, dead=False)
 
     solver = Solver()
-    solver.solver(node)
+    node = solver.solver(node)
     print("clear!!")
 
     while True:
