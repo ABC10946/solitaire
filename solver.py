@@ -68,6 +68,8 @@ class Solver:
 
             self.visited_states.add(state)
 
+            node.game.printField()
+
             if node.parent is not None and node.parent.parent is not None:
                 grandNode = node.parent.parent
                 if grandNode.game.backhi == node.game.backhi and grandNode.game.left3 == node.game.left3 and grandNode.game.right3 == node.game.right3:

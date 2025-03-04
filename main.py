@@ -78,7 +78,7 @@ def main():
               ["DD", "C4", "C8", "B7", "C3"],
               ["B6", "K3", "K9", "DC", "DC"],
               ["B2", "C9", "C5", "DD", "K2"],
-              ["B5", "DD", "K7", "DD", "K2"]]   # right
+              ["B5", "DD", "K7", "DD", "C2"]]   # right
 
     backHiConverted = [[convertToHiClass(x) for x in a] for a in backhiRaw]
 
