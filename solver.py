@@ -37,7 +37,6 @@ class Solver:
 
     def solver(self, root): # 終了したらTrueを返す
         stack = deque([root])
-
         while stack:
             node = stack.pop()
 
@@ -119,6 +118,8 @@ class Solver:
 
             for pickLeft in range(3):
                 controlArrs.append([None, pickLeft, None, None, True, None, None, None])
+
+            controlArrs = reversed(controlArrs)
 
             for i in controlArrs:
                 node_ = Node(node, copy.deepcopy(node.game), i, children=[], depth=node.depth + 1, dead=False)
