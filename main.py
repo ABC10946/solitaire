@@ -216,6 +216,7 @@ def main():
     node = reversed(nodeArr)
 
     for n in node:
+        print(n.controlArr)
         n.game.printField()
 
 
